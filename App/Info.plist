@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+  <key>CFBundleName</key><string>TranslatorUniversalAR</string>
+  <key>CFBundleDisplayName</key><string>Translator AR</string>
+  <key>CFBundleShortVersionString</key><string>1.0</string>
+  <key>CFBundleVersion</key><string>1</string>
+  <key>UILaunchStoryboardName</key><string></string>
+  <key>UIMainStoryboardFile</key><string></string>
+  <key>UIApplicationSceneManifest</key><dict><key>UIApplicationSupportsMultipleScenes</key><false/></dict>
+  <key>LSRequiresIPhoneOS</key><true/>
+  <key>UIRequiresFullScreen</key><true/>
+  <key>NSCameraUsageDescription</key><string>Folosim camera pentru traducere prin OCR și AR.</string>
+  <key>NSMicrophoneUsageDescription</key><string>Folosim microfonul pentru traducere voce-la-voce.</string>
+  <key>NSSpeechRecognitionUsageDescription</key><string>Folosim recunoașterea vocală locală pe device.</string>
+</dict></plist>
