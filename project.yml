@@ -1,0 +1,25 @@
+name: TranslatorUniversalARApp
+options:
+  deploymentTarget:
+    iOS: 17.0
+targets:
+  TranslatorUniversalARApp:
+    type: application
+    platform: iOS
+    bundleId: com.z7r8hjk6qw.translatorar
+    sources:
+      - path: .
+        excludes:
+          - .github
+          - README.md
+          - InfoPlistAdditions.plist
+    info:
+      path: App/Info.plist
+    settings:
+      PRODUCT_NAME: TranslatorUniversalAR
+    dependencies:
+      - sdk: AVFoundation.framework
+      - sdk: Speech.framework
+      - sdk: Vision.framework
+      - sdk: ARKit.framework
+      - sdk: RealityKit.framework
