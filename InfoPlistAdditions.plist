@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Add these keys to your project's Info.plist file to request the necessary permissions. -->
+    <key>NSCameraUsageDescription</key>
+    <string>Aplicația necesită acces la cameră pentru a recunoaște textul din mediul înconjurător.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Aplicația necesită acces la microfon pentru a recunoaște vorbirea și a efectua traduceri.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Aplicația folosește recunoașterea vocală pentru a transcrie vorbirea dvs. înainte de a o traduce.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Aplicația poate salva imagini capturate pentru traducere în biblioteca foto.</string>
+</dict>
+</plist>
