@@ -63,22 +63,39 @@ jobs:
             PRODUCT_BUNDLE_IDENTIFIER="com.z7r8hjk6qw.translatorar"
 
       - name: Export IPA
-        run: |
-          cat > ExportOptions.plist <<'PLIST'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0"><dict>
-            <key>method</key><string>development</string>
-            <key>signingStyle</key><string>manual</string>
-            <key>stripSwiftSymbols</key><true/>
-            <key>compileBitcode</key><false/>
-          </dict></plist>
-          PLIST
+  env:
+    IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+  run: |
+    APP_ID="com.z7r8hjk6qw.translatorar"
+    PROFILE=~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
-          xcodebuild -exportArchive \
-            -archivePath $PWD/build/TranslatorUniversalARApp.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath $PWD/build/export
+    # Citește din profil Numele și UUID-ul
+    PROF_PLIST="$(security cms -D -i "$PROFILE")"
+    PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' /dev/stdin <<< "$PROF_PLIST")
+    PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< "$PROF_PLIST")
+
+    # Creează ExportOptions cu mapping BundleID -> Numele profilului
+    cat > ExportOptions.plist <<EOF
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0"><dict>
+      <key>method</key><string>development</string>
+      <key>teamID</key><string>${IOS_TEAM_ID}</string>
+      <key>signingStyle</key><string>manual</string>
+      <key>signingCertificate</key><string>Apple Development</string>
+      <key>provisioningProfiles</key>
+      <dict>
+        <key>${APP_ID}</key><string>${PROFILE_NAME}</string>
+      </dict>
+      <key>stripSwiftSymbols</key><true/>
+      <key>compileBitcode</key><false/>
+    </dict></plist>
+    EOF
+
+    xcodebuild -exportArchive \
+      -archivePath $PWD/build/TranslatorUniversalARApp.xcarchive \
+      -exportOptionsPlist ExportOptions.plist \
+      -exportPath $PWD/build/export
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
