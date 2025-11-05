@@ -9,6 +9,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Select Xcode 16
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.1'   # dacă nu există pe runner, încearcă '16.0' sau '16'
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
@@ -22,22 +27,40 @@ jobs:
           IOS_PROFILE_BASE64: ${{ secrets.IOS_PROFILE_BASE64 }}
         run: |
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "$IOS_PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
-          echo "$IOS_CERT_BASE64" | base64 --decode > signing.p12
+          /usr/bin/printf '%s' "${IOS_PROFILE_BASE64}" | base64 -D > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          /usr/bin/printf '%s' "${IOS_CERT_BASE64}"    | base64 -D > signing.p12
+
           security create-keychain -p temp temp.keychain
-          security import signing.p12 -k temp.keychain -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign
+          security import signing.p12 -k temp.keychain -P "${IOS_CERT_PASSWORD}" -T /usr/bin/codesign
           security list-keychains -s temp.keychain
           security default-keychain -s temp.keychain
           security unlock-keychain -p temp temp.keychain
           security set-key-partition-list -S apple-tool:,apple: -s -k temp temp.keychain
 
-      - name: Build archive
+      # (opțional) debug ca să vedem profilul/identitățile
+      - name: Debug codesign context
         run: |
+          security find-identity -p codesigning -v || true
+          ls -l ~/Library/MobileDevice/Provisioning\ Profiles || true
+          /usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< "$(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision)" || true
+
+      - name: Build archive
+        env:
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}   # pune secretul cu Team ID (ex. Z7R8HJK6QW)
+        run: |
+          PROFILE=~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< "$(security cms -D -i "$PROFILE")")
+
           xcodebuild -scheme TranslatorUniversalARApp \
             -configuration Release \
             -archivePath $PWD/build/TranslatorUniversalARApp.xcarchive \
             -destination 'generic/platform=iOS' \
-            archive CODE_SIGN_STYLE=Manual
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="${IOS_TEAM_ID}" \
+            PROVISIONING_PROFILE_SPECIFIER="${PROFILE_UUID}" \
+            CODE_SIGN_IDENTITY="Apple Development" \
+            PRODUCT_BUNDLE_IDENTIFIER="com.z7r8hjk6qw.translatorar"
 
       - name: Export IPA
         run: |
@@ -45,12 +68,13 @@ jobs:
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0"><dict>
-            <key>method</key><string>ad-hoc</string>
+            <key>method</key><string>development</string>
             <key>signingStyle</key><string>manual</string>
             <key>stripSwiftSymbols</key><true/>
             <key>compileBitcode</key><false/>
           </dict></plist>
           PLIST
+
           xcodebuild -exportArchive \
             -archivePath $PWD/build/TranslatorUniversalARApp.xcarchive \
             -exportOptionsPlist ExportOptions.plist \
